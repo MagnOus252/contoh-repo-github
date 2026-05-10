@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIMPER - Dashboard Analisis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; overflow: hidden; }
+        .nav-link.active { background: #2563eb; color: white; box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.4); }
+        .content-section { display: none; animation: slideUp 0.4s ease-out forwards; }
+        .content-section.active { display: block; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        #loader { position: fixed; inset: 0; background: white; z-index: 100; display: flex; justify-content: center; align-items: center; transition: 0.5s; }
+    </style>
+</head>
+<body class="flex h-screen">
+
+    <div id="loader"><div class="flex flex-col items-center"><div class="w-12 h-12 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin"></div></div></div>
+
+    <aside class="w-72 bg-slate-900 text-white flex flex-col p-6 shadow-2xl z-20">
+        <div class="flex items-center gap-4 mb-12 px-2">
+            <div class="bg-blue-600 p-3 rounded-2xl shadow-lg shadow-blue-500/40"><i class="fas fa-chart-pie text-xl"></i></div>
+            <h1 class="font-black text-xl tracking-tight">SIMPER</h1>
+        </div>
+
+        <nav class="flex-1 space-y-2">
+            <button onclick="showSection('dashboard')" id="btn-dashboard" class="nav-link active w-full flex items-center gap-3 p-4 rounded-2xl transition-all font-semibold">
+                <i class="fas fa-th-large w-5"></i> Dashboard
+            </button>
+            <button onclick="showSection('model')" id="btn-model" class="nav-link w-full flex items-center gap-3 p-4 text-slate-400 hover:text-white rounded-2xl transition-all font-semibold">
+                <i class="fas fa-square-root-alt w-5"></i> Model Matematis
+            </button>
+            <button onclick="showSection('perilaku')" id="btn-perilaku" class="nav-link w-full flex items-center gap-3 p-4 text-slate-400 hover:text-white rounded-2xl transition-all font-semibold">
+                <i class="fas fa-user-friends w-5"></i> Analisis Perilaku
+            </button>
+            <button onclick="showSection('laporan')" id="btn-laporan" class="nav-link w-full flex items-center gap-3 p-4 text-slate-400 hover:text-white rounded-2xl transition-all font-semibold">
+                <i class="fas fa-file-contract w-5"></i> Laporan
+            </button>
+        </nav>
+
+        <button onclick="window.location.href='login.html'" class="mt-auto flex items-center justify-center gap-2 py-4 text-red-400 hover:bg-red-500/10 rounded-2xl transition-all font-bold">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+    </aside>
+
+    <main class="flex-1 p-10 overflow-y-auto bg-slate-50">
+        
+        <section id="dashboard" class="content-section active">
+            <header class="mb-10">
+                <h2 class="text-3xl font-black text-slate-800 tracking-tight">Dashboard Analisis</h2>
+                <p class="text-slate-500 font-medium mt-1">Ringkasan Sistem Informasi Perilaku Manajerial</p>
+            </header>
+
+            <div class="grid grid-cols-4 gap-6 mb-10">
+                <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
+                    <p class="text-slate-400 text-[10px] font-bold uppercase mb-2 tracking-widest">Total Keputusan</p>
+                    <h3 class="text-3xl font-black text-slate-800" id="val-keputusan">0</h3>
+                </div>
+                <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
+                    <p class="text-slate-400 text-[10px] font-bold uppercase mb-2 tracking-widest">Efektivitas</p>
+                    <h3 class="text-3xl font-black text-blue-600">92.4%</h3>
+                </div>
+                <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
+                    <p class="text-slate-400 text-[10px] font-bold uppercase mb-2 tracking-widest">Akurasi Model</p>
+                    <h3 class="text-3xl font-black text-slate-800">94.8%</h3>
+                </div>
+                <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
+                    <p class="text-slate-400 text-[10px] font-bold uppercase mb-2 tracking-widest">Pending</p>
+                    <h3 class="text-3xl font-black text-orange-500">18</h3>
+                </div>
+            </div>
+
+            <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+                <h4 class="font-bold text-slate-700 mb-6 flex items-center gap-2"><i class="fas fa-wave-square text-blue-500"></i> Tren Performa Model</h4>
+                <canvas id="chartDashboard" height="100"></canvas>
+            </div>
+        </section>
+
+        <section id="perilaku" class="content-section">
+            <header class="mb-10">
+                <h2 class="text-3xl font-black text-slate-800 tracking-tight">Analisis Perilaku</h2>
+                <p class="text-slate-500 font-medium">Klasifikasi pola manajerial Alvin, Panji, dan Desi.</p>
+            </header>
+            <div class="bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-sm">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 text-slate-400 text-[10px] font-bold uppercase tracking-widest">
+                        <tr><th class="p-6">Nama Manajer</th><th class="p-6">Skor Proaktif</th><th class="p-6">Skor Reaktif</th><th class="p-6">Evaluasi</th></tr>
+                    </thead>
+                    <tbody class="text-sm">
+                        <tr class="border-t border-slate-50">
+                            <td class="p-6 font-bold text-blue-600 italic">Alvin</td><td class="p-6 font-semibold">91%</td><td class="p-6">9%</td>
+                            <td class="p-6"><span class="bg-green-100 text-green-600 px-4 py-1.5 rounded-full font-bold">Superior</span></td>
+                        </tr>
+                        <tr class="border-t border-slate-50">
+                            <td class="p-6 font-bold text-blue-600 italic">Panji</td><td class="p-6 font-semibold">78%</td><td class="p-6">22%</td>
+                            <td class="p-6"><span class="bg-blue-100 text-blue-600 px-4 py-1.5 rounded-full font-bold">Strong</span></td>
+                        </tr>
+                        <tr class="border-t border-slate-50">
+                            <td class="p-6 font-bold text-blue-600 italic">Desi</td><td class="p-6 font-semibold">84%</td><td class="p-6">16%</td>
+                            <td class="p-6"><span class="bg-purple-100 text-purple-600 px-4 py-1.5 rounded-full font-bold">Optimal</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="model" class="content-section">
+            <h2 class="text-3xl font-black mb-4">Pengembangan Model</h2>
+            <div class="bg-blue-600 p-8 rounded-[2rem] text-white">
+                <p class="text-xl font-mono">Formula: Y = β0 + β1X1 + β2X2 + e</p>
+            </div>
+        </section>
+
+        <section id="laporan" class="content-section">
+            <h2 class="text-3xl font-black mb-4">Laporan Strategis</h2>
+            <div class="p-10 border-4 border-dashed border-slate-200 rounded-[2rem] text-center text-slate-400 font-bold">
+                Fitur Export Laporan PDF/Excel Segera Hadir
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // NAVIGATION LOGIC
+        function showSection(id) {
+            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.getElementById('btn-' + id).classList.add('active');
+        }
+
+        // LOADER & ANIMATION
+        window.onload = () => {
+            setTimeout(() => {
+                document.getElementById('loader').style.opacity = '0';
+                setTimeout(() => document.getElementById('loader').remove(), 500);
+                
+                // Count up animation
+                let count = 0;
+                let interval = setInterval(() => {
+                    count += 25;
+                    document.getElementById('val-keputusan').innerText = count.toLocaleString();
+                    if(count >= 1255) {
+                        document.getElementById('val-keputusan').innerText = "1,255";
+                        clearInterval(interval);
+                    }
+                }, 30);
+            }, 800);
+        }
+
+        // CHART DASHBOARD
+        const ctx = document.getElementById('chartDashboard').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Minggu 1', 'Minggu 2', 'Minggu 3', 'Minggu 4'],
+                datasets: [{
+                    label: 'Performa',
+                    data: [65, 82, 78, 94],
+                    borderColor: '#2563eb',
+                    borderWidth: 4,
+                    tension: 0.4,
+                    fill: true,
+                    backgroundColor: 'rgba(37, 99, 235, 0.05)'
+                }]
+            },
+            options: { plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
+        });
+    </script>
+</body>
+</html>
